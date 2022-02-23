@@ -128,7 +128,7 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
     string private constant SYMBOL = "WCFLT";
 
 
-    uint8 private constant MAX_TAXES = 25;
+    uint8 private constant MAX_TAXES = 15;
     struct Taxes {
       uint256 rfi;
       uint256 dev;
@@ -162,10 +162,15 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
     address _bridge;
 
     event FeesChanged();
+
     event DevAddressChanged(address newDevAddress);
+
     event RouterChanged(address newRouterAddress, address newPairAddress);
+
     event SwapEnabledChanged(bool swapEnabled);
+
     event SwapTokenAtAmountChanged(uint256 swapTokensAtAmount);
+
     event BridgeChanged(address newBridge);
 
     modifier lockTheSwap {
