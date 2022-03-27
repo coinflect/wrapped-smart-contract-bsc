@@ -118,6 +118,7 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
 
     uint256 private constant MAX_SUPPLY = 42000000000 * 10**DECIMALS;
     uint256 private _rTotal = (MAX - (MAX % MAX_SUPPLY));
+    uint256 private _totalSupply;
     
     uint256 public swapTokensAtAmount = 42000000 * 10**DECIMALS;
 
@@ -126,7 +127,6 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
 
     string private constant NAME = "Wrapped Coinflect";
     string private constant SYMBOL = "WCFLT";
-
 
     uint8 private constant MAX_TAXES = 15;
     struct Taxes {
@@ -185,7 +185,7 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
         _;
     }
 
-    constructor (address routerAddress, address devWallet) {
+    constructor (address routerAddress, address devWallet, uint256 initialSupply) {
         devAddress = devWallet;
         IRouter _router = IRouter(routerAddress);
         address _pair = IFactory(_router.factory())
@@ -203,10 +203,12 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
         _isExcludedFromFee[devAddress]=true;
         _isExcludedFromFee[DEAD_ADDRESS] = true;
 
-        emit Transfer(address(0), owner(), MAX_SUPPLY);
+        _totalSupply = initialSupply;
+
+        emit Transfer(address(0), owner(), initialSupply);
     }
 
-        function name() external pure returns (string memory) {
+    function name() external pure returns (string memory) {
         return NAME;
     }
 
@@ -278,7 +280,8 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
     }
 
     function mintToBridge(uint256 amount) external onlyBridge {
-        require(totalSupply() <= MAX_SUPPLY, "Cannot mint more than max supply");
+        require(_totalSupply + amount <= MAX_SUPPLY, "Cannot mint more than max supply");
+        _totalSupply = _totalSupply + amount;
         emit Transfer(address(0), _bridge, amount);
     }
 
@@ -353,8 +356,8 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
         emit FeesChanged();
     }
 
-    function totalSupply() public pure override returns (uint256) {
-        return MAX_SUPPLY;
+    function totalSupply() public view override returns (uint256) {
+        return _totalSupply;
     }
 
     function balanceOf(address account) public view override returns (uint256) {
