@@ -104,6 +104,7 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
     mapping (address => mapping (address => uint256)) private _allowances;
     mapping (address => bool) private _isExcludedFromFee;
     mapping (address => bool) private _isExcluded;
+    mapping (address => bool) private _admins;
 
     address[] private _excluded;
     
@@ -182,6 +183,11 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
     modifier onlyBridge(){
         require(_bridge != address(0), "Bridge contract not specified.");
         require(_msgSender() == _bridge, "Sender is not bridge contract.");
+        _;
+    }
+
+    modifier onlyAdmin {
+        require (_msgSender() == owner() || _admins[_msgSender()] == true, "!permission");
         _;
     }
 
@@ -335,12 +341,16 @@ contract WrappedCoinflectToken is Context, IERC20, Ownable {
         }
     }
 
-    function excludeFromFee(address account) external onlyOwner {
+    function excludeFromFee(address account) external onlyAdmin {
         _isExcludedFromFee[account] = true;
     }
 
-    function includeInFee(address account) external onlyOwner {
+    function includeInFee(address account) external onlyAdmin {
         _isExcludedFromFee[account] = false;
+    }
+
+    function setAdmins(address account, bool flag) external onlyOwner {
+        _admins[account] = flag;
     }
 
     function isExcludedFromFee(address account) external view returns(bool) {
